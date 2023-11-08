@@ -69,6 +69,21 @@ def neue_bestellung_generieren(tischnummer, speisen):
 neue_bestellung = neue_bestellung_generieren(5, {'1': 2, '3': 1, '5': 3})
 print(neue_bestellung)
 
+# Annahme: bestellungen_gesamt als globales DataFrame definiert
+bestellungen_gesamt = pd.DataFrame(columns=['ID', 'Datum', 'Tischnummer', 'SpeiseID', 'Menge', 'Status'])
+
+def bestellung_stornieren(bestellungs_id):
+    global bestellungen_gesamt
+    
+    if bestellungs_id in bestellungen_gesamt['ID'].tolist():
+        bestellungen_gesamt.loc[bestellungen_gesamt['ID'] == bestellungs_id, 'Status'] = 'storno'
+        print(f"Bestellung {bestellungs_id} wurde storniert.")
+    else:
+        print(f"Bestellung {bestellungs_id} nicht gefunden.")
+
+# Beispielaufruf der Stornierungs-Funktion
+bestellung_stornieren(3)  # Annahme: Die Bestellung mit der ID 3 soll storniert werden
+
     
     
 
