@@ -35,3 +35,11 @@ def validate_order(menu, order_details):
             return False
     return True
 # endregion Datenvalidierung
+
+# region Storno
+def cancel_order(order_list, order_id):
+    order_list.loc[order_list["ID"] == order_id, "Status"] = "storno"
+    
+    return order_list
+# endregion Storno
+
