@@ -6,4 +6,3 @@ def load_menu(menu_file):
 
 menu_file = r"C:\Users\Admin\source\repos\Flo130522\gastro\speisekarte.csv"
 speisekarte = load_menu(menu_file)
-print(speisekarte)
