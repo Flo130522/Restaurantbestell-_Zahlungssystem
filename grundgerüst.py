@@ -1,8 +1,11 @@
 import pandas as pd
 
-def load_menu(menu_file):
-    speisekarte = pd.read_csv(menu_file, index_col=0)
-    return speisekarte
+def load_menu(menu_file, encoding="utf-8"):
+    menu = pd.read_csv(menu_file, encoding=encoding)
+    return menu
 
-menu_file = r"C:\Users\Admin\source\repos\Flo130522\gastro\speisekarte.csv"
-speisekarte = load_menu(menu_file)
+menu_file = r"speisekarte.csv"
+restaurant_menu = load_menu(menu_file)
+
+load_menu(menu_file)
+print(restaurant_menu)
