@@ -40,3 +40,35 @@ if bestellung_pruefen(speisekarte, bestellung_2):
 else:
     print("Bestellung 2 enthält Gerichte, die nicht auf der Speisekarte sind.")
 
+import pandas as pd
+from datetime import datetime
+
+# Erstellen des leeren DataFrame für die Bestellungen
+bestellungen_gesamt = pd.DataFrame(columns=['ID', 'Datum', 'Tischnummer', 'SpeiseID', 'Menge', 'Status'])
+
+# Die Funktion zum Hinzufügen einer neuen Bestellung
+def neue_bestellung_generieren(tischnummer, speisen):
+    global bestellungen_gesamt  # Verwende die globale Variable
+    
+    neue_id = len(bestellungen_gesamt) + 1
+    datum = datetime.now().strftime("%Y-%m-%d")
+    
+    neue_bestellung = pd.DataFrame({
+        'ID': [neue_id] * len(speisen),
+        'Datum': [datum] * len(speisen),
+        'Tischnummer': [tischnummer] * len(speisen),
+        'SpeiseID': speisen.keys(),
+        'Menge': speisen.values(),
+        'Status': 'offen'
+    })
+    
+    bestellungen_gesamt = pd.concat([bestellungen_gesamt, neue_bestellung], ignore_index=True)
+    return bestellungen_gesamt
+
+# Beispielaufruf der Funktion für eine neue Bestellung
+neue_bestellung = neue_bestellung_generieren(5, {'1': 2, '3': 1, '5': 3})
+print(neue_bestellung)
+
+    
+    
+
