@@ -83,7 +83,3 @@ def bestellung_stornieren(bestellungs_id):
 
 # Beispielaufruf der Stornierungs-Funktion
 bestellung_stornieren(3)  # Annahme: Die Bestellung mit der ID 3 soll storniert werden
-
-    
-    
-
