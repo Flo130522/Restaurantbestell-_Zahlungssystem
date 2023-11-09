@@ -1,20 +1,16 @@
 import tkinter as tk
-from tkinter import font
 
 class WelcomeWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("Willkommen bei Golden Seagull")
 
-        # Schriftart und Größe für die Willkommensnachricht
-        custom_font = font.nametofont("TkDefaultFont")
-        custom_font.configure(size=20)  # Ändere die Schriftgröße hier nach Bedarf
-
-        # Willkommensnachricht mit angepasster Schriftgröße
+        # Willkommensnachricht mit Schriftgröße 20
         label = tk.Label(root, text="Willkommen bei Golden Seagull", font=("Arial", 20))
         label.grid()
 
-        button = tk.Button(root, text="Weiter", command=self.open_main_menu)
+        # Button mit Schriftgröße 15 und Aktion zum Wechseln zum Hauptmenü
+        button = tk.Button(root, text="Jetzt bestellen!", font=("Arial", 15), command=self.open_main_menu)
         button.grid()
 
     def open_main_menu(self):
