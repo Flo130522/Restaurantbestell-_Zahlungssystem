@@ -10,7 +10,7 @@ def calculate_total(order, menu):
 def generate_invoice(order, menu, tip=0):
     total = calculate_total(order, menu)
     net_price = total
-    tax_rate = 0.19  # Beispiel: 19% Mehrwertsteuer
+    tax_rate = 0.19  
     tax_amount = total * tax_rate
     total_price = total + tax_amount
     if tip > 0:
