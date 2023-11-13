@@ -1,7 +1,7 @@
 ID,Name,Beschreibung,Preis,Kategorie,Allergene,Vegetarisch,Vegan
 1,Schnitzel mit Pommes,Frisches Schweineschnitzel mit knusprigen Pommes frites,12.50,Hauptspeise,Laktose,,,
 2,Spaghetti Bolognese,Italienische Spaghetti mit herzhafter Bolognesesauce,10.00,Hauptspeise,Gluten,,,
-3,Caesar Salat,Gemischter Salat mit Caesar-Dressing und Croutons,8.50,Vorspeise,Laktose,,,,
+3,Caesar Salat,Gemischter Salat mit Caesar-Dressing und Croutons,8.50,Vorspeise,Laktose,,,
 4,Pizza Margherita,Klassische Pizza mit Tomaten & Mozzarella und Basilikum,11.00,Hauptspeise,Gluten/Laktose,Vegetarisch,,
 5,Fischfilet mit Gemüse,Gebratenes Fischfilet mit saisonalem Gemüse,14.00,Hauptspeise,Fisch,,,
 6,Fruchtsalat,Bunter Fruchtsalat mit frischen Früchten,6.50,Nachspeise,,,Vegan
