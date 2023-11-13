@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, simpledialog
 import pandas as pd
 from datetime import datetime
-#test
 
 class MainMenu:
     def __init__(self, root, menu_file="speisekarte.csv"):
@@ -21,7 +20,8 @@ class MainMenu:
 
     def load_menu(self, menu_file, encoding="utf-8"):
         try:
-            menu = pd.read_csv(menu_file, encoding=encoding, index_col="ID")
+            menu = pd.read_csv(menu_file, encoding=encoding, index_col=False)
+            menu.set_index("ID", inplace=True)
             menu["Preis"] = menu["Preis"].map("{:.2f} €".format)
             pd.set_option('display.max_colwidth', None)  
             return menu
