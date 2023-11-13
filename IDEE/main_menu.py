@@ -60,7 +60,8 @@ class MainMenu:
         self.cart_frame = ttk.LabelFrame(self.root, text="Warenkorb")
         self.cart_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
-        self.cart_text = tk.Text(self.cart_frame, height=10, width=40, wrap=tk.WORD)
+        self.cart_text_var = tk.StringVar()  # StringVar to manage the content of the cart_text
+        self.cart_text = tk.Text(self.cart_frame, height=10, width=40, wrap=tk.WORD, state=tk.DISABLED)
         self.cart_text.grid(row=1, column=0, padx=5, pady=5)
 
         self.total_label = tk.Label(self.cart_frame, text="Gesamtsumme: 0.00 €")
@@ -73,8 +74,9 @@ class MainMenu:
         self.selected_dish = None
 
     def add_to_cart(self, event):
-        if self.selected_dish:
-            dish_id = self.selected_dish["ID"]
+        selected_item = self.menu_tree.selection()
+        if selected_item:
+            dish_id = selected_item[0]
             print(f"Adding dish to cart: {dish_id}")
             if dish_id in self.cart:
                 self.cart[dish_id] += 1
@@ -82,6 +84,7 @@ class MainMenu:
                 self.cart[dish_id] = 1
             print(f"Cart after adding: {self.cart}")
             self.update_invoice()
+
 
 
     def remove_from_cart(self):
@@ -118,11 +121,21 @@ class MainMenu:
 
     def update_invoice(self):
         invoice = self.generate_invoice()
-        self.cart_text.delete(1.0, "end")
-        self.cart_text.insert("end", invoice)
+
+        # Set the text widget to normal state before updating
+        self.cart_text.config(state=tk.NORMAL)
+
+        # Delete the existing content in the text widget
+        self.cart_text.delete(1.0, tk.END)
+
+        # Insert the new content into the text widget
+        self.cart_text.insert(tk.END, invoice)
+
+        # Disable the text widget to prevent user modification
+        self.cart_text.config(state=tk.DISABLED)
 
         total_price = sum(
-            self.menu.loc[dish_id, "Preis"] * quantity
+            self.menu.loc[dish_id, "Preis"] * quantity if dish_id in self.menu.index else 0
             for dish_id, quantity in self.cart.items()
         )
         self.total_label.config(text=f"Gesamtsumme: {total_price:.2f} €")
@@ -130,29 +143,43 @@ class MainMenu:
     def generate_invoice(self):
         total = 0
         invoice_text = ""
+        net_price = 0
+        tax_rate = 0.19
+
         for dish_id, quantity in self.cart.items():
             dish_data = self.menu_tree.item(dish_id, "values")
-            name = dish_data[0]
-            beschreibung = dish_data[1]
-            preis = dish_data[2]
-            total += float(preis.split(" €")[0]) * quantity
-            invoice_text += f"{name} x{quantity}: {beschreibung} ({preis})\n"
+            name = dish_data[1]
+            beschreibung = dish_data[2]
+            preis = dish_data[3]
 
-        net_price = total
-        tax_rate = 0.19
+            try:
+                price_float = float(preis.split(" €")[0])
+                total += price_float * quantity
+                net_price += price_float * quantity
+                invoice_text += f"{name} x{quantity}: {beschreibung} ({preis})\n"
+            except ValueError:
+                print(f"Invalid 'preis' value for {name}: {preis}")
+
+        # Calculate tax amount
         tax_amount = total * tax_rate
+
+        # Add tip to the total if provided
         total_price = total + tax_amount
         if self.tip_percentage > 0:
             total_price += self.tip_percentage
 
+        # Construct the invoice text
         invoice_text += "-----------------------------\n"
         invoice_text += f"Gesamtpreis: {total:.2f} €\n"
-        invoice_text += f"Trinkgeld: {self.tip_percentage:.2f} €\n"
+        if self.tip_percentage > 0:
+            invoice_text += f"Trinkgeld: {self.tip_percentage:.2f} €\n"
         invoice_text += f"Nettopreis: {net_price:.2f} €\n"
         invoice_text += f"MwSt.: {tax_amount:.2f} €\n"
         invoice_text += f"Bruttopreis: {total_price:.2f} €"
 
         return invoice_text
+
+
 
     def create_order(self, speiseID, menge):
         if self.validate_order({speiseID: menge}):
