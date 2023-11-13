@@ -4,19 +4,25 @@ import pandas as pd
 from datetime import datetime
 
 class MainMenu:
-    def __init__(self, root, menu_file="speisekarte.csv"):
+    def __init__(self, root, menu_file="IDEE\speisekarte.csv"):
         self.root = root
         self.root.title("Golden Seagull - Hauptmenü")
+        self.menu_frame = ttk.LabelFrame(self.root, text="Speisekarte")
+        self.menu_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.menu = self.load_menu(menu_file)
         self.filter_menu = None
         self.create_menu_ui()
-        self.create_order_ui()
+        self.root.geometry("1200x500") 
         self.tischnummer = None
         self.tip_percentage = 0
         self.order_items = {}
         self.cart = {}
+        self.create_order_ui()
         self.create_payment_ui()
         self.ask_customer_preferences()
+        self.root.mainloop()
+        self.orders = pd.DataFrame(columns=["ID", "Datum", "SpeiseID", "Menge", "Status"])
+
 
     def load_menu(self, menu_file, encoding="utf-8"):
         try:
@@ -30,51 +36,30 @@ class MainMenu:
             return pd.DataFrame()
 
     def create_menu_ui(self):
-        self.menu_frame = ttk.LabelFrame(self.root, text="Speisekarte")
-        self.menu_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-
-        # Checkboxen für Unverträglichkeiten und Ernährungsvorlieben
-        self.gluten_var = tk.BooleanVar(value=True)
-        self.laktose_var = tk.BooleanVar(value=True)
-        self.vegan_var = tk.BooleanVar(value=True)
-        self.vegetarisch_var = tk.BooleanVar(value=True)
-
-        gluten_checkbox = ttk.Checkbutton(self.menu_frame, text="Glutenfrei", variable=self.gluten_var, command=self.update_menu)
-        laktose_checkbox = ttk.Checkbutton(self.menu_frame, text="Laktosefrei", variable=self.laktose_var, command=self.update_menu)
-        vegan_checkbox = ttk.Checkbutton(self.menu_frame, text="Vegan", variable=self.vegan_var, command=self.update_menu)
-        vegetarisch_checkbox = ttk.Checkbutton(self.menu_frame, text="Vegetarisch", variable=self.vegetarisch_var, command=self.update_menu)
-
-        gluten_checkbox.grid(row=0, column=0, sticky="w")
-        laktose_checkbox.grid(row=1, column=0, sticky="w")
-        vegan_checkbox.grid(row=2, column=0, sticky="w")
-        vegetarisch_checkbox.grid(row=3, column=0, sticky="w")
-
         if not hasattr(self, 'menu_tree'):
-            self.menu_tree = ttk.Treeview(self.menu_frame, columns=("Name", "Beschreibung", "Preis"))
-            self.menu_tree.heading("#1", text="Name")
-            self.menu_tree.heading("#2", text="Beschreibung")
-            self.menu_tree.heading("#3", text="Preis")
-            self.menu_tree.grid(row=4, column=0, pady=5)
-
-            self.update_menu()
+            self.menu_tree = ttk.Treeview(self.menu_frame, columns=("ID", "Name", "Beschreibung", "Preis", "Allergene", "Vegetarisch", "Vegan"))
+            self.menu_tree.heading("#1", text="ID")
+            self.menu_tree.heading("#2", text="Name")
+            self.menu_tree.heading("#3", text="Beschreibung")
+            self.menu_tree.heading("#4", text="Preis")
+            self.menu_tree.heading("#5", text="Allergene")
+            self.menu_tree.heading("#6", text="Vegetarisch")
+            self.menu_tree.heading("#7", text="Vegan")
 
             style = ttk.Style()
-            style.configure("Treeview.Heading", font=("Arial", 14))  
-            style.configure("Treeview", font=("Arial", 11))  
-
-            self.menu_tree.tag_configure("Beschreibung", font=("Arial", 11))  
-
-            self.menu_tree.column("#2", width=300, anchor="center")  
-            self.menu_tree.column("#3", width=100, anchor="center")  
-            self.menu_tree.column("#3", anchor="center")  
-
+            style.configure("Treeview.Heading", font=("Arial", 14))
+            style.configure("Treeview", font=("Arial", 11))
+            self.menu_tree.tag_configure("Beschreibung", font=("Arial", 11))
+            self.menu_tree.column("#1", width=40, anchor="w")
+            self.menu_tree.column("#2", width=200, anchor="w")
+            self.menu_tree.column("#3", width=400, anchor="w")
+            self.menu_tree.column("#4", width=100, anchor="w")
+            self.menu_tree.column("#5", width=150, anchor="w")
+            self.menu_tree.column("#6", width=150, anchor="w")
+            self.menu_tree.column("#7", width=150, anchor="w")
             self.menu_tree.bind("<Double-1>", self.add_to_cart)
-
-        if not hasattr(self, 'order_button'):
-            self.order_button = ttk.Button(self.menu_frame, text="Jetzt bestellen", command=self.place_order)
-            self.order_button.grid(row=5, column=0, pady=5)
-
-        # Warenkorb-Anzeige
+            self.menu_tree.grid(row=4, column=0, pady=5)
+            
         self.cart_frame = ttk.LabelFrame(self.root, text="Warenkorb")
         self.cart_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
@@ -85,25 +70,97 @@ class MainMenu:
         self.total_label = tk.Label(self.cart_frame, text="Gesamtsumme: 0.00 €")
         self.total_label.grid(row=2, column=0, padx=5, pady=5)
 
+    
+    def center_window(self, window, width, height):
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        x = (screen_width / 2) - (width / 2)
+        y = (screen_height / 2) - (height / 2)
+        window.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
     def create_order_ui(self):
         self.order_frame = ttk.LabelFrame(self.root, text="Bestellung")
         self.order_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-
         self.selected_dish = None
 
     def ask_customer_preferences(self):
-        # Frage nach den Unverträglichkeiten oder Ernährungsvorlieben des Kunden
-        result = simpledialog.askstring(
-            "Präferenzen",
-            "Wählen Sie Ihre Präferenzen:",
+        response = simpledialog.askstring(
+            "Ernährungsvorlieben",
+            "Haben Sie besondere Ernährungsvorlieben oder Unverträglichkeiten? (Ja/Nein)",
             parent=self.root,
-            initialvalue="Gluten, Laktose, Vegan, Vegetarisch"
+            initialvalue="Nein"
         )
 
-        if result:
-            preferences_list = [pref.strip().lower() for pref in result.split(',')]
-            self.filter_menu = preferences_list
-            self.update_menu()
+        if response and response.lower() == "ja":
+            if self.show_dietary_preferences_window():
+                self.filter_and_display_menu()
+        else:
+            self.filter_and_display_menu()
+            
+    def filter_and_display_menu(self):
+        filtered_menu = self.menu.copy()
+
+        if self.filter_menu:
+            for preference in self.filter_menu:
+                if preference.lower() == "gluten":
+                    filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("gluten", case=False, na=False)]
+                elif preference.lower() == "laktose":
+                    filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("laktose", case=False, na=False)]
+                elif preference.lower() == "vegan":
+                    filtered_menu = filtered_menu[filtered_menu['Vegan/Vegetarisch'].str.contains("vegan", case=False, na=False)]
+                elif preference.lower() == "vegetarisch":
+                    filtered_menu = filtered_menu[filtered_menu['Vegan/Vegetarisch'].str.contains("vegetarisch", case=False, na=False)]
+        if filtered_menu.empty:
+            print("Die gefilterte Speisekarte ist leer.")
+        else:
+            self.display_menu(filtered_menu)
+            self.display_menu(filtered_menu)
+
+    def show_dietary_preferences_window(self):
+        if hasattr(self, 'preferences_window') and self.preferences_window:
+            self.preferences_window.lift()
+        else:
+            self.preferences_window = tk.Toplevel(self.root)
+            self.preferences_window.title("Ernährungsvorlieben")
+            self.center_window(self.preferences_window, 400, 300)  # Setze die Größe auf 400x300 Pixel und zentriere das Fenster
+            self.create_dietary_preferences_window()
+
+    def create_dietary_preferences_window(self):
+        self.gluten_var = tk.BooleanVar(value=True)
+        self.laktose_var = tk.BooleanVar(value=True)
+        self.vegan_var = tk.BooleanVar(value=True)
+        self.vegetarisch_var = tk.BooleanVar(value=True)
+
+        gluten_checkbox = ttk.Checkbutton(self.preferences_window, text="Glutenfrei", variable=self.gluten_var)
+        laktose_checkbox = ttk.Checkbutton(self.preferences_window, text="Laktosefrei", variable=self.laktose_var)
+        vegan_checkbox = ttk.Checkbutton(self.preferences_window, text="Vegan", variable=self.vegan_var)
+        vegetarisch_checkbox = ttk.Checkbutton(self.preferences_window, text="Vegetarisch", variable=self.vegetarisch_var)
+
+        gluten_checkbox.grid(row=0, column=0, sticky="w")
+        laktose_checkbox.grid(row=1, column=0, sticky="w")
+        vegan_checkbox.grid(row=2, column=0, sticky="w")
+        vegetarisch_checkbox.grid(row=3, column=0, sticky="w")
+
+        confirm_button = ttk.Button(self.preferences_window, text="Bestätigen", command=self.apply_dietary_preferences)
+        confirm_button.grid(row=4, column=0, pady=10)
+
+    def apply_dietary_preferences(self):
+        self.filter_menu = []
+
+        if self.gluten_var.get():
+            self.filter_menu.append("gluten")
+        if self.laktose_var.get():
+            self.filter_menu.append("laktose")
+        if self.vegan_var.get():
+            self.filter_menu.append("vegan")
+        if self.vegetarisch_var.get():
+            self.filter_menu.append("vegetarisch")
+
+        self.preferences_window.destroy()
+        return True
+
+    def show_menu(self):
+        self.root.mainloop()
 
     def update_menu(self, *args):
         filtered_menu = self.menu.copy()
@@ -125,7 +182,14 @@ class MainMenu:
         self.menu_tree.delete(*self.menu_tree.get_children())
 
         for index, row in menu.iterrows():
-            self.menu_tree.insert("", "end", values=(index, row["Name"], row["Beschreibung"], row["Preis"]))
+            self.menu_tree.insert("", "end", values=(index, row["Name"], row["Beschreibung"], row["Preis"], row["Allergene"], row["Vegetarisch"], row["Vegan"]))
+
+        self.menu_tree.column("#1", width=40, anchor="w")
+        self.menu_tree.column("#2", width=200, anchor="w")
+        self.menu_tree.column("#3", width=400, anchor="w")
+        self.menu_tree.column("#4", width=100, anchor="w")
+        self.menu_tree.column("#5", width=150, anchor="w")
+        self.menu_tree.column("#6", width=150, anchor="w")
 
     def add_to_cart(self, event):
         selected_item = self.menu_tree.selection()
@@ -140,13 +204,16 @@ class MainMenu:
             self.update_invoice()
 
     def remove_from_cart(self):
-        if self.selected_dish:
-            dish_id = self.selected_dish["ID"]
+        selected_item = self.menu_tree.selection()
+        if selected_item:
+            dish_id = selected_item[0]
+            print(f"Removing dish from cart: {dish_id}")
             if dish_id in self.cart:
                 if self.cart[dish_id] > 1:
                     self.cart[dish_id] -= 1
                 else:
                     del self.cart[dish_id]
+                print(f"Cart after removing: {self.cart}")
                 self.update_invoice()
 
     def place_order(self):
@@ -287,7 +354,12 @@ class MainMenu:
         payment_result = simpledialog.askstring("Bezahlung abgeschlossen", confirmation_message)
 
         if payment_result:
-            self.display_order_status(payment_result)
+            if payment_result.lower() == "storno":
+                self.cancel_order(self.orders["ID"].iloc[-1])  # Storniere die letzte Bestellung
+                status_message = "storniert"
+            else:
+                status_message = "erfolgreich"
+            self.display_order_status(status_message)
         else:
             print("Zahlung storniert.")
 
@@ -295,8 +367,16 @@ class MainMenu:
         status_window = tk.Toplevel(self.root)
         status_window.title("Bestellstatus")
 
-        status_label = tk.Label(status_window, text=f"Ihre Bestellung wurde {payment_method}.")
+        if payment_method.lower() == "storno":
+            status_label = tk.Label(status_window, text=f"Ihre letzte Bestellung wurde {payment_method}.")
+        else:
+            status_label = tk.Label(status_window, text=f"Ihre letzte Bestellung wurde {payment_method}.")
+
         status_label.pack()
+    
+    def show_menu(self):
+        self.root.mainloop()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
