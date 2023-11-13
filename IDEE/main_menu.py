@@ -8,6 +8,7 @@ class MainMenu:
         self.root = root
         self.root.title("Golden Seagull - Hauptmenü")
         self.menu = self.load_menu(menu_file)
+        self.filtered_menu = self.menu  # Initialisiert das gefilterte Menü mit dem gesamten Menü
         self.create_menu_ui()
         self.create_order_ui()
         self.tischnummer = None
@@ -20,7 +21,7 @@ class MainMenu:
         try:
             menu = pd.read_csv(menu_file, encoding=encoding, index_col="ID")
             menu["Preis"] = menu["Preis"].map("{:.2f} €".format)
-            pd.set_option('display.max_colwidth', None)  # Beschreibung vollständig anzeigen
+            pd.set_option('display.max_colwidth', None)
             return menu
         except FileNotFoundError:
             print(f"Die Datei '{menu_file}' wurde nicht gefunden.")
@@ -31,41 +32,59 @@ class MainMenu:
         self.menu_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         if not hasattr(self, 'menu_tree'):
-            self.menu_tree = ttk.Treeview(self.menu_frame, columns=("Name", "Beschreibung", "Preis"))
-            self.menu_tree.heading("#1", text="Name")
-            self.menu_tree.heading("#2", text="Beschreibung")
-            self.menu_tree.heading("#3", text="Preis")
+            self.menu_tree = ttk.Treeview(self.menu_frame, columns=("ID", "Name", "Beschreibung", "Preis"))
+            self.menu_tree.heading("#1", text="ID")
+            self.menu_tree.heading("#2", text="Name")
+            self.menu_tree.heading("#3", text="Beschreibung")
+            self.menu_tree.heading("#4", text="Preis")
             self.menu_tree.grid(row=0, column=0)
 
-            for index, row in self.menu.iterrows():
+            for index, row in self.filtered_menu.iterrows():
                 self.menu_tree.insert("", "end", values=(index, row["Name"], row["Beschreibung"], row["Preis"]))
 
             style = ttk.Style()
-            style.configure("Treeview.Heading", font=("Arial", 14))  # Schriftgröße für Überschriften
-            style.configure("Treeview", font=("Arial", 11))  # Schriftgröße für den Inhalt
-
-            self.menu_tree.tag_configure("Beschreibung", font=("Arial", 11))  # Schriftgröße für die Spalte "Beschreibung"
-
-            self.menu_tree.column("#2", width=300, anchor="center")  # Breite der Beschreibung anpassen
-            self.menu_tree.column("#3", width=100, anchor="center")  # Breite der Preis-Spalte anpassen
-            self.menu_tree.column("#3", anchor="center")  # Preis zentrieren
-
+            style.configure("Treeview.Heading", font=("Arial", 14))
+            style.configure("Treeview", font=("Arial", 11))
+            self.menu_tree.tag_configure("Beschreibung", font=("Arial", 11))
+            self.menu_tree.column("#3", width=300, anchor="w")
+            self.menu_tree.column("#4", width=100, anchor="w")
             self.menu_tree.bind("<Double-1>", self.add_to_cart)
 
         if not hasattr(self, 'order_button'):
             self.order_button = ttk.Button(self.menu_frame, text="Jetzt bestellen", command=self.place_order)
             self.order_button.grid(row=1, column=0, pady=5)
 
-        # Warenkorb-Anzeige
         self.cart_frame = ttk.LabelFrame(self.root, text="Warenkorb")
         self.cart_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
-        self.cart_text_var = tk.StringVar()  # StringVar to manage the content of the cart_text
+        self.cart_text_var = tk.StringVar()
         self.cart_text = tk.Text(self.cart_frame, height=10, width=40, wrap=tk.WORD, state=tk.DISABLED)
         self.cart_text.grid(row=1, column=0, padx=5, pady=5)
 
         self.total_label = tk.Label(self.cart_frame, text="Gesamtsumme: 0.00 €")
         self.total_label.grid(row=2, column=0, padx=5, pady=5)
+
+        # Buttons für die Speisekategorien
+        self.filter_frame = ttk.Frame(self.root)
+        self.filter_frame.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.filter_buttons = [
+            ttk.Button(self.filter_frame, text="Vorspeisen", command=lambda: self.filter_menu("Vorspeise")),
+            ttk.Button(self.filter_frame, text="Hauptspeisen", command=lambda: self.filter_menu("Hauptspeise")),
+            ttk.Button(self.filter_frame, text="Desserts", command=lambda: self.filter_menu("Dessert"))
+        ]
+
+        for i, button in enumerate(self.filter_buttons):
+            button.grid(row=i, column=0, pady=5)
+
+    def filter_menu(self, category):
+        self.filtered_menu = self.menu[self.menu["Kategorie"] == category]
+        self.update_menu()
+
+    def update_menu(self):
+        self.menu_tree.delete(*self.menu_tree.get_children())
+        for index, row in self.filtered_menu.iterrows():
+            self.menu_tree.insert("", "end", values=(index, row["Name"], row["Beschreibung"], row["Preis"]))
 
     def create_order_ui(self):
         self.order_frame = ttk.LabelFrame(self.root, text="Bestellung")
@@ -84,8 +103,6 @@ class MainMenu:
                 self.cart[dish_id] = 1
             print(f"Cart after adding: {self.cart}")
             self.update_invoice()
-
-
 
     def remove_from_cart(self):
         if self.selected_dish:
@@ -121,19 +138,10 @@ class MainMenu:
 
     def update_invoice(self):
         invoice = self.generate_invoice()
-
-        # Set the text widget to normal state before updating
         self.cart_text.config(state=tk.NORMAL)
-
-        # Delete the existing content in the text widget
         self.cart_text.delete(1.0, tk.END)
-
-        # Insert the new content into the text widget
         self.cart_text.insert(tk.END, invoice)
-
-        # Disable the text widget to prevent user modification
         self.cart_text.config(state=tk.DISABLED)
-
         total_price = sum(
             self.menu.loc[dish_id, "Preis"] * quantity if dish_id in self.menu.index else 0
             for dish_id, quantity in self.cart.items()
@@ -160,15 +168,11 @@ class MainMenu:
             except ValueError:
                 print(f"Invalid 'preis' value for {name}: {preis}")
 
-        # Calculate tax amount
         tax_amount = total * tax_rate
-
-        # Add tip to the total if provided
         total_price = total + tax_amount
         if self.tip_percentage > 0:
             total_price += self.tip_percentage
 
-        # Construct the invoice text
         invoice_text += "-----------------------------\n"
         invoice_text += f"Gesamtpreis: {total:.2f} €\n"
         if self.tip_percentage > 0:
@@ -178,8 +182,6 @@ class MainMenu:
         invoice_text += f"Bruttopreis: {total_price:.2f} €"
 
         return invoice_text
-
-
 
     def create_order(self, speiseID, menge):
         if self.validate_order({speiseID: menge}):
@@ -202,18 +204,18 @@ class MainMenu:
 
     def set_tischnummer(self):
         self.tischnummer = simpledialog.askinteger("Tischnummer", "Bitte geben Sie die Tischnummer ein:", parent=self.root)
-    
+
     def set_tip_percentage(self):
         self.tip_percentage = simpledialog.askfloat("Trinkgeld", "Bitte geben Sie das Trinkgeld ein:", parent=self.root)
-    
-    def create_payment_ui(self):  # Neu hinzugefügte Funktion
+
+    def create_payment_ui(self):
         self.payment_frame = ttk.LabelFrame(self.root, text="Bezahlung")
         self.payment_frame.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
         self.pay_button = ttk.Button(self.payment_frame, text="Bezahlen", command=self.process_payment)
         self.pay_button.grid(row=0, column=0, pady=5)
 
-    def process_payment(self):  # Neu hinzugefügte Funktion
+    def process_payment(self):
         payment_window = tk.Toplevel(self.root)
         payment_window.title("Zahlung")
 
@@ -231,7 +233,7 @@ class MainMenu:
         confirm_button = ttk.Button(payment_window, text="Bestätigen", command=lambda: self.complete_payment(payment_window, tip_var, custom_tip_entry))
         confirm_button.grid(row=1, column=0, columnspan=3, pady=10)
 
-    def complete_payment(self, payment_window, tip_var, custom_tip_entry):  # Neu hinzugefügte Funktion
+    def complete_payment(self, payment_window, tip_var, custom_tip_entry):
         if tip_var.get():
             self.tip_percentage = float(tip_var.get())
         elif custom_tip_entry.get():
@@ -248,21 +250,19 @@ class MainMenu:
 
         payment_result = simpledialog.askstring("Bezahlung abgeschlossen", confirmation_message)
 
-
         if payment_result:
             self.display_order_status(payment_result)
         else:
             print("Zahlung storniert.")
 
-    def display_order_status(self, payment_method):  # Neu hinzugefügte Funktion
+    def display_order_status(self, payment_method):
         status_window = tk.Toplevel(self.root)
         status_window.title("Bestellstatus")
 
         status_label = tk.Label(status_window, text=f"Ihre Bestellung wurde {payment_method}.")
         status_label.pack()
-        
+
 if __name__ == "__main__":
     root = tk.Tk()
     main_menu = MainMenu(root)
     root.mainloop()
-
