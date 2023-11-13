@@ -2,12 +2,12 @@ ID,Name,Beschreibung,Preis,Kategorie,Allergene,Vegetarisch,Vegan
 1,Schnitzel mit Pommes,Frisches Schweineschnitzel mit knusprigen Pommes frites,12.50,Hauptspeise,Laktose,,,
 2,Spaghetti Bolognese,Italienische Spaghetti mit herzhafter Bolognesesauce,10.00,Hauptspeise,Gluten,,,
 3,Caesar Salat,Gemischter Salat mit Caesar-Dressing und Croutons,8.50,Vorspeise,Laktose,,,,
-4,Pizza Margherita,Klassische Pizza mit Tomaten & Mozzarella und Basilikum,11.00,Hauptspeise,Gluten/Laktose,Vegetarisch
+4,Pizza Margherita,Klassische Pizza mit Tomaten & Mozzarella und Basilikum,11.00,Hauptspeise,Gluten/Laktose,Vegetarisch,,
 5,Fischfilet mit Gemüse,Gebratenes Fischfilet mit saisonalem Gemüse,14.00,Hauptspeise,Fisch,,,
-6,Fruchtsalat,Bunter Fruchtsalat mit frischen Früchten,6.50,Nachspeise,,,,Vegan
+6,Fruchtsalat,Bunter Fruchtsalat mit frischen Früchten,6.50,Nachspeise,,,Vegan
 7,Apfelkuchen,Fruchtiger Apfelkuchen mit Sahne,4.50,Nachspeise,Gluten/Laktose,Vegetarisch,
-8,Gemischter Salat,Frischer gemischter Salat mit Dressing,5.50 €,Vorspeise,,,,Vegan
+8,Gemischter Salat,Frischer gemischter Salat mit Dressing,5.50 €,Vorspeise,,,Vegan
 9,Tiramisu,Italienisches Dessert mit Kaffee-Geschmack,4.50 €,Dessert,Laktose/Koffein,Vegetarisch,
-10,Suppe des Tages,Täglich wechselnde Suppe,4.00 €,Vorspeise,,,,Vegan
+10,Suppe des Tages,Täglich wechselnde Suppe,4.00 €,Vorspeise,,,Vegan
 11,Lasagne,Traditionelle italienische Lasagne,12.50 €,Hauptspeise,Gluten/Laktose,Vegetarisch
 12,Schokoladenkuchen,Saftiger Schokoladenkuchen,3.50 €,Dessert,Gluten,,Vegetarisch
