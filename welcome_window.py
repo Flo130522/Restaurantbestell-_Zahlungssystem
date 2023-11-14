@@ -1,4 +1,5 @@
 import tkinter as tk
+from grundgerüst import MainMenu
 
 class WelcomeWindow:
     def __init__(self, root):
@@ -12,8 +13,8 @@ class WelcomeWindow:
         button.grid()
 
     def open_main_menu(self):
-        from grundgerüst import MainMenu
-        main_menu = MainMenu(self.root)
+        MainMenu(self.root)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
