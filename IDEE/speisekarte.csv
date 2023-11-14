@@ -1,0 +1,17 @@
+ID,Name,Beschreibung,Preis,Kategorie,Allergene,Vegetarisch,Vegan
+1,Schnitzel mit Pommes,Frisches Schweineschnitzel mit knusprigen Pommes frites,12.50,Hauptspeise,Laktose,Nein,Nein
+2,Spaghetti Bolognese,Italienische Spaghetti mit herzhafter Bolognesesauce,10.00,Hauptspeise,Gluten,Nein,Nein
+3,Caesar Salat,Gemischter Salat mit Caesar-Dressing und Croutons,8.50,Vorspeise,Laktose,Nein,Nein
+4,Pizza Margherita,Klassische Pizza mit Tomaten & Mozzarella und Basilikum,11.00,Hauptspeise,Gluten/Laktose,Ja,Nein
+5,Fischfilet mit Gemüse,Gebratenes Fischfilet mit saisonalem Gemüse,14.00,Hauptspeise,Fisch,Nein,Nein
+6,Fruchtsalat,Bunter Fruchtsalat mit frischen Früchten,6.50,Nachspeise,keine,Ja,Ja
+7,Apfelkuchen,Fruchtiger Apfelkuchen mit Sahne,4.50,Nachspeise,Gluten/Laktose,Ja,Nein
+8,Gemischter Salat,Frischer gemischter Salat mit Dressing,5.50,Vorspeise,keine,Ja,Ja
+9,Tiramisu,Italienisches Dessert mit Kaffee-Geschmack,4.50,Dessert,Laktose/Koffein,Ja,Nein
+10,Suppe des Tages,Täglich wechselnde Suppe,4.00,Vorspeise,keine,Nein,Nein
+11,Lasagne,Traditionelle italienische Lasagne,12.50,Hauptspeise,Gluten/Laktose,Nein,Nein
+12,Schokoladenkuchen,Saftiger Schokoladenkuchen,3.50,Dessert,Gluten,Ja,Nein
+13,Pias überbackene Bolognese, Spaghetti Bolognese mit Käse überbacken,12.00,Hauptspeise,Gluten/Laktose,Nein,Nein
+14,Liams Erdbeerkuchen,Fruchtiger Erdbeerkuchen mit Sahne,4.50,Dessert,Gluten/Laktose,Ja,Ja
+15,Georgs Sushi,Traditionelles Sushi mit Lachs,12.50,Hauptspeise,Fisch/Soja,Nein,Nein
+16,Pascals Semmelknödel mit Gulasch,Traditionelle Semmelknödel mit Gulasch,12.50,Hauptspeise,Gluten/Laktose,Nein,Nein
