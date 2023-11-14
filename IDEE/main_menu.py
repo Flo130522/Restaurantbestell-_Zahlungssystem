@@ -29,11 +29,11 @@ class MainMenu:
             menu = pd.read_csv(menu_file, encoding=encoding, index_col=False)
             menu.set_index("ID", inplace=True)
             menu["Preis"] = menu["Preis"].map("{:.2f} €".format)
-            pd.set_option('display.max_colwidth', None)  
-            return menu
-        except FileNotFoundError:
-            print(f"Die Datei '{menu_file}' wurde nicht gefunden.")
-            return pd.DataFrame()
+            pd.set_option('display.max_colwidth', None)
+            return menu  # Rückgabe der geladenen Speisekarte
+        except Exception as e:
+            print(f"Fehler beim Laden der Speisekarte: {e}")
+            return None
 
     def create_menu_ui(self):
         if not hasattr(self, 'menu_tree'):
@@ -96,25 +96,34 @@ class MainMenu:
                 self.filter_and_display_menu()
         else:
             self.filter_and_display_menu()
-            
+
+
     def filter_and_display_menu(self):
+        print(f"Filter menu: {self.filter_menu}")
+        if not self.filter_menu:
+            self.display_menu(self.menu)
+            return
+
         filtered_menu = self.menu.copy()
 
-        if self.filter_menu:
-            for preference in self.filter_menu:
-                if preference.lower() == "gluten":
-                    filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("gluten", case=False, na=False)]
-                elif preference.lower() == "laktose":
-                    filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("laktose", case=False, na=False)]
-                elif preference.lower() == "vegan":
-                    filtered_menu = filtered_menu[filtered_menu['Vegan/Vegetarisch'].str.contains("vegan", case=False, na=False)]
-                elif preference.lower() == "vegetarisch":
-                    filtered_menu = filtered_menu[filtered_menu['Vegan/Vegetarisch'].str.contains("vegetarisch", case=False, na=False)]
+        if "gluten" in self.filter_menu:
+            filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("gluten", case=False, na=False)]
+        if "laktose" in self.filter_menu:
+            filtered_menu = filtered_menu[filtered_menu['Allergene'].str.contains("laktose", case=False, na=False)]
+        if "vegan" in self.filter_menu:
+            filtered_menu = filtered_menu[filtered_menu['Vegan'] == "Ja"]
+        if "vegetarisch" in self.filter_menu:
+            filtered_menu = filtered_menu[filtered_menu['Vegetarisch'] == "Ja"]
+
+        print(f"Filtered menu: {filtered_menu}")
+
         if filtered_menu.empty:
             print("Die gefilterte Speisekarte ist leer.")
         else:
             self.display_menu(filtered_menu)
-            self.display_menu(filtered_menu)
+
+
+
 
     def show_dietary_preferences_window(self):
         if hasattr(self, 'preferences_window') and self.preferences_window:
@@ -194,7 +203,7 @@ class MainMenu:
     def add_to_cart(self, event):
         selected_item = self.menu_tree.selection()
         if selected_item:
-            dish_id = selected_item[0]
+            dish_id = selected_item[0]  # Extract the first element from the tuple
             print(f"Adding dish to cart: {dish_id}")
             if dish_id in self.cart:
                 self.cart[dish_id] += 1
@@ -202,6 +211,7 @@ class MainMenu:
                 self.cart[dish_id] = 1
             print(f"Cart after adding: {self.cart}")
             self.update_invoice()
+
 
     def remove_from_cart(self):
         selected_item = self.menu_tree.selection()
