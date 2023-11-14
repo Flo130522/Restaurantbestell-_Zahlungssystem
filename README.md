@@ -24,7 +24,7 @@ Dies ist ein einfaches Bestell- und Zahlungssystem für ein fiktives Restaurant 
 - Tkinter (normalerweise in Python enthalten)
 
 ## Ausführen
-Zum Starten des Programmes 
+Zum Starten des Programmes die Datei "welcome_window.py" ausführen
 
 ## Verwendung
 - Wähle Gerichte aus der Speisekarte aus, um sie dem Warenkorb hinzuzufügen.
