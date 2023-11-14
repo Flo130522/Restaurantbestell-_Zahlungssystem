@@ -12,7 +12,7 @@ Dies ist ein einfaches Bestell- und Zahlungssystem für ein fiktives Restaurant 
 
 ## Funktionalitäten
 
-- Anzeige einer Speisekarte mit verschiedenen Gerichten
+-   Anzeige einer Speisekarte mit verschiedenen Gerichten
 - Hinzufügen und Entfernen von Gerichten aus dem Warenkorb
 - Berechnung der Gesamtsumme der Bestellung einschließlich Trinkgeld
 - Auswahl und Anzeige von Zahlungsmethoden
