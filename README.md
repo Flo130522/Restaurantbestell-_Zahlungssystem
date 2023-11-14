@@ -7,6 +7,7 @@ Dies ist ein einfaches Bestell- und Zahlungssystem für ein fiktives Restaurant 
 - [Funktionalitäten](#funktionalitäten)
 - [Voraussetzungen](#voraussetzungen)
 - [Verwendung](#verwendung)
+- [Ausführen](#Ausführen)
 - [Lizenz](#lizenz)
 
 ## Funktionalitäten
@@ -21,6 +22,9 @@ Dies ist ein einfaches Bestell- und Zahlungssystem für ein fiktives Restaurant 
 
 - Python 3.x
 - Tkinter (normalerweise in Python enthalten)
+
+## Ausführen
+Zum Starten des Programmes 
 
 ## Verwendung
 - Wähle Gerichte aus der Speisekarte aus, um sie dem Warenkorb hinzuzufügen.
