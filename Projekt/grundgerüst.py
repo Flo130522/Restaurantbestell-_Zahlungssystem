@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, simpledialog
 import pandas as pd
 from datetime import datetime
+import os
 
 class MainMenu:
     def __init__(self, root, menu_file="IDEE\speisekarte.csv"):
@@ -23,6 +24,10 @@ class MainMenu:
 
 
     def load_menu(self, menu_file, encoding="utf-8"):
+        if "speisekarte.csv" in os.listdir():
+            pass
+        else:
+            menu_file = "..\IDEE\speisekarte.csv"
         try:
             menu = pd.read_csv(menu_file, encoding=encoding, index_col=False)
             menu.set_index("ID", inplace=True)
