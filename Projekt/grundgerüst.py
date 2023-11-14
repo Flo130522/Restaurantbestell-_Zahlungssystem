@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, simpledialog
+from tkinter import ttk, simpledialog, messagebox
 import pandas as pd
 from datetime import datetime
 import os
@@ -21,9 +21,7 @@ class MainMenu:
         self.orders = pd.DataFrame(columns=["ID", "Datum", "SpeiseID", "Menge", "Status"])
         self.display_menu(self.menu)  # Add this line to display the menu
         self.payment_method = ""
- 
-
-
+        
     def load_menu(self, menu_file, encoding="utf-8"):
         if "speisekarte.csv" in os.listdir():
             pass
@@ -74,6 +72,7 @@ class MainMenu:
         self.cart_text_var = tk.StringVar()  
         self.cart_text = tk.Text(self.cart_frame, height=10, width=40, wrap=tk.WORD, state=tk.DISABLED)
         self.cart_text.grid(row=1, column=0, padx=5, pady=5)
+
 
         remove_button = ttk.Button(self.cart_frame, text="Aus dem Warenkorb entfernen", command=self.remove_from_cart)
         remove_button.grid(row=2, column=0, pady=5)
@@ -156,7 +155,12 @@ class MainMenu:
             self.menu.loc[dish_id, "Preis"] * quantity if dish_id in self.menu.index else 0
             for dish_id, quantity in self.cart.items()
         )
-        self.total_label.config(text=f"Gesamtsumme: {total_price:.2f} €")
+
+        # Berechne den Gesamtpreis einschließlich Trinkgeld
+        total_price_with_tip = self.calculate_total_price()
+
+        self.total_label = ttk.Label(self.cart_frame, text=f"Gesamtsumme: {total_price_with_tip:.2f} €")
+        self.total_label.grid(row=3, column=0, padx=5, pady=5)
 
     def generate_invoice(self):
         total = 0
@@ -180,14 +184,14 @@ class MainMenu:
 
         tax_amount = total * tax_rate
         total_price = total + tax_amount
-        if self.tip_percentage > 0:
-            total_price += self.tip_percentage
+        tip_amount = total * self.tip_percentage  # Calculate tip amount as a percentage
+        total_price_with_tip = total_price + tip_amount  # Calculate total with tip
 
         invoice_text += "-----------------------------\n"
         invoice_text += f"MwSt.: {tax_amount:.2f} €\n"
         invoice_text += f"Gesamtpreis: {total_price:.2f} €\n"
         if self.tip_percentage > 0:
-            invoice_text += f"Trinkgeld: {self.tip_percentage:.2f} €\n"
+            invoice_text += f"Trinkgeld ({self.tip_percentage * 100}%): {tip_amount:.2f} €\n"
         invoice_text += "=============================\n"
         invoice_text += f"Vielen Dank für ihren Besuch in der Goldenen Möwe!\n"
         return invoice_text
@@ -202,18 +206,6 @@ class MainMenu:
         else:
             return None
 
-    def validate_order(self, order_details):
-        for item_id in order_details.keys():
-            if item_id not in self.menu.index:
-                return False
-        return True
-
-    def cancel_order(self, order_id):
-        self.orders.loc[self.orders["ID"] == order_id, "Status"] = "storno"
-
-    def set_tischnummer(self):
-        self.tischnummer = simpledialog.askinteger("Tischnummer", "Bitte geben Sie die Tischnummer ein:", parent=self.root)
-
     def ask_for_tip_amount(self):
         tip_options = [5, 10, 15]
         
@@ -226,21 +218,27 @@ class MainMenu:
             button = ttk.Button(tip_dialog, text=f"{tip_percentage}%", command=lambda p=tip_percentage: self.set_tip_percentage(p))
             button.pack(pady=5)
         
-        # Add a button for custom tip amount
-        custom_button = ttk.Button(tip_dialog, text="Eigener Betrag", command=self.ask_custom_tip_amount)
-        custom_button.pack(pady=5)
-        
         # Wait for the user to make a choice
         tip_dialog.wait_window()
-        
-    def ask_custom_tip_amount(self):
-        tip_choice = simpledialog.askfloat("Trinkgeld", "Bitte geben Sie den Trinkgeldbetrag ein:", parent=self.root)
-        if tip_choice is not None:
-            self.set_tip_percentage(tip_choice)
 
-    def set_tip_percentage(self, percentage):
-        self.tip_percentage = percentage / 100
+    def set_tip_percentage(self, tip_percentage):
+        self.tip_percentage = tip_percentage / 100  # Convert tip percentage to decimal
+        self.update_invoice()
 
+    def calculate_total_price(self, tax_rate=0.19):  # tax_rate defaults to 19% if not provided
+        total = 0
+        for dish_id, quantity in self.cart.items():
+            # Convert dish_id to an integer
+            dish_id_int = int(dish_id[1:])
+            if dish_id_int in self.menu.index:
+                price = float(self.menu.loc[dish_id_int, "Preis"].split(" ")[0].replace(",", "."))
+                total += price * quantity
+
+        tax = total * tax_rate
+        tip = total * self.tip_percentage  # Calculate tip based on the total price before tax
+        total += tax
+        total_with_tip = total + (total * self.tip_percentage)  # Calculate total with tip as a percentage
+        return total_with_tip
 
     def create_payment_ui(self):
         self.payment_frame = ttk.LabelFrame(self.root, text="Bezahlung")
@@ -252,15 +250,15 @@ class MainMenu:
     def process_payment(self):
         # Ask if the customer wants to give a tip
         tip_response = tk.messagebox.askyesno("Trinkgeld", "Möchten Sie Trinkgeld geben?")
-        
+
         if tip_response:
             # If yes, ask for the tip amount
-            tip_amount = self.ask_for_tip_amount()
+            self.ask_for_tip_amount()
         else:
             tip_amount = 0
 
         # Calculate the total price including tip
-        total_price = self.calculate_total_price(tip_amount)
+        total_price = self.calculate_total_price()
 
         # Display the payment window
         payment_window = tk.Toplevel(self.root)
@@ -278,8 +276,6 @@ class MainMenu:
         confirm_button = ttk.Button(payment_window, text="Bestätigen", command=lambda: self.complete_payment(payment_window, total_price, payment_var))
         confirm_button.grid(row=1, column=0, columnspan=2, pady=10)
 
-
-
     def complete_payment(self, payment_window, total_price, payment_var):
         self.payment_method = payment_var.get()
         payment_window.destroy()
@@ -287,41 +283,9 @@ class MainMenu:
         tip_message = f"Trinkgeld: {self.tip_percentage * total_price:.2f} €\n" if self.tip_percentage > 0 else ""
         confirmation_message = f"Ihre Bestellung wurde erfolgreich bezahlt.\n{tip_message}Gesamtpreis: {total_price:.2f} €\nZahlungsmethode: {self.payment_method}"
 
-        payment_result = simpledialog.askstring("Bezahlung abgeschlossen", confirmation_message)
+        messagebox.showinfo("Bezahlung abgeschlossen", confirmation_message)
 
-        if payment_result:
-            if payment_result.lower() == "storno":
-                self.cancel_order(self.orders["ID"].iloc[-1])  # Storniere die letzte Bestellung
-                status_message = "storniert"
-            else:
-                status_message = "erfolgreich"
-            self.display_order_status(status_message)
-        else:
-            print("Zahlung storniert.")
-
-    def display_order_status(self, payment_method):
-        status_window = tk.Toplevel(self.root)
-        status_window.title("Bestellstatus")
-
-        if payment_method.lower() == "storno":
-            status_label = tk.Label(status_window, text=f"Ihre letzte Bestellung wurde {payment_method}.")
-        else:
-            status_label = tk.Label(status_window, text=f"Ihre letzte Bestellung wurde {payment_method}.")
-
-        status_label.pack()
-    
-    def calculate_total_price(self, tip_amount, tax_rate=0.19):  # tax_rate defaults to 19% if not provided
-        total = 0
-        for dish_id, quantity in self.cart.items():
-            # Convert dish_id to an integer
-            dish_id_int = int(dish_id[1:])
-            if dish_id_int in self.menu.index:
-                price = float(self.menu.loc[dish_id_int, "Preis"].split(" ")[0].replace(",", "."))
-                total += price * quantity
-
-        tax = total * tax_rate
-        total += tax + tip_amount
-        return total
+        status_message = "erfolgreich"
 
 if __name__ == "__main__":
     root = tk.Tk()
