@@ -21,6 +21,7 @@ class MainMenu:
         self.orders = pd.DataFrame(columns=["ID", "Datum", "SpeiseID", "Menge", "Status"])
         self.display_menu(self.menu)  # Add this line to display the menu
         self.payment_method = ""
+ 
 
 
     def load_menu(self, menu_file, encoding="utf-8"):
@@ -309,16 +310,17 @@ class MainMenu:
 
         status_label.pack()
     
-    def calculate_total_price(self, tip_amount):
-        total = sum(
-            float(self.menu.loc[dish_id, "Preis"].split(" ")[0].replace(",", ".")) * quantity
-            if dish_id in self.menu.index else 0
-            for dish_id, quantity in self.cart.items()
-        )
-        
-        total += total * tip_amount
-        print(f"Total after tip: {total}")
-        
+    def calculate_total_price(self, tip_amount, tax_rate=0.19):  # tax_rate defaults to 19% if not provided
+        total = 0
+        for dish_id, quantity in self.cart.items():
+            # Convert dish_id to an integer
+            dish_id_int = int(dish_id[1:])
+            if dish_id_int in self.menu.index:
+                price = float(self.menu.loc[dish_id_int, "Preis"].split(" ")[0].replace(",", "."))
+                total += price * quantity
+
+        tax = total * tax_rate
+        total += tax + tip_amount
         return total
 
 if __name__ == "__main__":
