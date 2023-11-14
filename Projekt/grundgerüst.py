@@ -19,6 +19,7 @@ class MainMenu:
         self.create_payment_ui()
         self.orders = pd.DataFrame(columns=["ID", "Datum", "SpeiseID", "Menge", "Status"])
         self.display_menu(self.menu)  # Add this line to display the menu
+        self.payment_method = ""
 
 
     def load_menu(self, menu_file, encoding="utf-8"):
@@ -207,8 +208,33 @@ class MainMenu:
     def set_tischnummer(self):
         self.tischnummer = simpledialog.askinteger("Tischnummer", "Bitte geben Sie die Tischnummer ein:", parent=self.root)
 
-    def set_tip_percentage(self):
-        self.tip_percentage = simpledialog.askfloat("Trinkgeld", "Bitte geben Sie das Trinkgeld ein:", parent=self.root)
+    def ask_for_tip_amount(self):
+        tip_options = [5, 10, 15]
+        
+        # Create a custom dialog
+        tip_dialog = simpledialog.Toplevel(self.root)
+        tip_dialog.title("Trinkgeld")
+        
+        # Add buttons for predefined tip percentages
+        for tip_percentage in tip_options:
+            button = ttk.Button(tip_dialog, text=f"{tip_percentage}%", command=lambda p=tip_percentage: self.set_tip_percentage(p))
+            button.pack(pady=5)
+        
+        # Add a button for custom tip amount
+        custom_button = ttk.Button(tip_dialog, text="Eigener Betrag", command=self.ask_custom_tip_amount)
+        custom_button.pack(pady=5)
+        
+        # Wait for the user to make a choice
+        tip_dialog.wait_window()
+        
+    def ask_custom_tip_amount(self):
+        tip_choice = simpledialog.askfloat("Trinkgeld", "Bitte geben Sie den Trinkgeldbetrag ein:", parent=self.root)
+        if tip_choice is not None:
+            self.set_tip_percentage(tip_choice)
+
+    def set_tip_percentage(self, percentage):
+        self.tip_percentage = percentage / 100
+
 
     def create_payment_ui(self):
         self.payment_frame = ttk.LabelFrame(self.root, text="Bezahlung")
@@ -218,37 +244,42 @@ class MainMenu:
         self.pay_button.grid(row=0, column=0, pady=5)
 
     def process_payment(self):
+        # Ask if the customer wants to give a tip
+        tip_response = tk.messagebox.askyesno("Trinkgeld", "Möchten Sie Trinkgeld geben?")
+        
+        if tip_response:
+            # If yes, ask for the tip amount
+            tip_amount = self.ask_for_tip_amount()
+        else:
+            tip_amount = 0
+
+        # Calculate the total price including tip
+        total_price = self.calculate_total_price(tip_amount)
+
+        # Display the payment window
         payment_window = tk.Toplevel(self.root)
         payment_window.title("Zahlung")
 
-        tip_label = tk.Label(payment_window, text="Möchten Sie Trinkgeld geben?")
-        tip_label.grid(row=0, column=0, padx=10, pady=10)
+        # Ask for payment method
+        payment_label = tk.Label(payment_window, text="Wählen Sie eine Zahlungsmethode:")
+        payment_label.grid(row=0, column=0, padx=10, pady=10)
 
-        tip_options = [5, 10, 15]
-        tip_var = tk.StringVar(payment_window, value=0)
-        tip_dropdown = ttk.Combobox(payment_window, values=tip_options, textvariable=tip_var)
-        tip_dropdown.grid(row=0, column=1, padx=10, pady=10)
+        payment_options = ["Bar", "Karte", "Gutschein", "ApplePay/GooglePay", "PayPal"]
+        payment_var = tk.StringVar(payment_window, value=payment_options[0])
+        payment_dropdown = ttk.Combobox(payment_window, values=payment_options, textvariable=payment_var)
+        payment_dropdown.grid(row=0, column=1, padx=10, pady=10)
 
-        custom_tip_entry = ttk.Entry(payment_window)
-        custom_tip_entry.grid(row=0, column=2, padx=10, pady=10)
+        confirm_button = ttk.Button(payment_window, text="Bestätigen", command=lambda: self.complete_payment(payment_window, total_price, payment_var))
+        confirm_button.grid(row=1, column=0, columnspan=2, pady=10)
 
-        confirm_button = ttk.Button(payment_window, text="Bestätigen", command=lambda: self.complete_payment(payment_window, tip_var, custom_tip_entry))
-        confirm_button.grid(row=1, column=0, columnspan=3, pady=10)
 
-    def complete_payment(self, payment_window, tip_var, custom_tip_entry):
-        if tip_var.get():
-            self.tip_percentage = float(tip_var.get())
-        elif custom_tip_entry.get():
-            self.tip_percentage = float(custom_tip_entry.get())
 
+    def complete_payment(self, payment_window, total_price, payment_var):
+        self.payment_method = payment_var.get()
         payment_window.destroy()
 
-        if self.tip_percentage > 0:
-            tip_message = f"Vielen Dank für Ihr Trinkgeld von {self.tip_percentage:.2f} €!\n\n"
-        else:
-            tip_message = ""
-
-        confirmation_message = f"Ihre Bestellung wurde erfolgreich bezahlt.\n{tip_message}Wählen Sie eine Zahlungsmethode:"
+        tip_message = f"Trinkgeld: {self.tip_percentage * total_price:.2f} €\n" if self.tip_percentage > 0 else ""
+        confirmation_message = f"Ihre Bestellung wurde erfolgreich bezahlt.\n{tip_message}Gesamtpreis: {total_price:.2f} €\nZahlungsmethode: {self.payment_method}"
 
         payment_result = simpledialog.askstring("Bezahlung abgeschlossen", confirmation_message)
 
@@ -272,6 +303,18 @@ class MainMenu:
             status_label = tk.Label(status_window, text=f"Ihre letzte Bestellung wurde {payment_method}.")
 
         status_label.pack()
+    
+    def calculate_total_price(self, tip_amount):
+        total = sum(
+            float(self.menu.loc[dish_id, "Preis"].split(" ")[0].replace(",", ".")) * quantity
+            if dish_id in self.menu.index else 0
+            for dish_id, quantity in self.cart.items()
+        )
+        
+        total += total * tip_amount
+        print(f"Total after tip: {total}")
+        
+        return total
 
 if __name__ == "__main__":
     root = tk.Tk()
