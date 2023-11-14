@@ -19,7 +19,7 @@ class MainMenu:
         self.create_order_ui()
         self.create_payment_ui()
         self.orders = pd.DataFrame(columns=["ID", "Datum", "SpeiseID", "Menge", "Status"])
-        self.display_menu(self.menu)  # Add this line to display the menu
+        self.display_menu(self.menu)  
         self.payment_method = ""
 
     def load_menu(self, menu_file, encoding="utf-8"):
@@ -35,7 +35,6 @@ class MainMenu:
             return menu
         except Exception as e:
             print(f"Fehler beim Laden der Speisekarte: {e}")
-            # Gib ein leeres DataFrame zurück, um sicherzustellen, dass immer ein DataFrame vorhanden ist
             return pd.DataFrame(columns=["ID", "Name", "Beschreibung", "Preis", "Kategorie", "Allergene", "Vegetarisch", "Vegan"])
 
 
@@ -102,7 +101,7 @@ class MainMenu:
     def add_to_cart(self, event):
         selected_item = self.menu_tree.selection()
         if selected_item:
-            dish_id = selected_item[0]  # Extract the first element from the tuple
+            dish_id = selected_item[0]
             print(f"Adding dish to cart: {dish_id}")
             if dish_id in self.cart:
                 self.cart[dish_id] += 1
@@ -158,7 +157,6 @@ class MainMenu:
             for dish_id, quantity in self.cart.items()
         )
 
-        # Berechne den Gesamtpreis einschließlich Trinkgeld
         total_price_with_tip = self.calculate_total_price()
 
         self.total_label = ttk.Label(self.cart_frame, text=f"Gesamtsumme: {total_price_with_tip:.2f} €")
@@ -186,8 +184,8 @@ class MainMenu:
 
         tax_amount = total * tax_rate
         total_price = total + tax_amount
-        tip_amount = total * self.tip_percentage  # Calculate tip amount as a percentage
-        total_price_with_tip = total_price + tip_amount  # Calculate total with tip
+        tip_amount = total * self.tip_percentage  
+        total_price_with_tip = total_price + tip_amount 
 
         invoice_text += "-----------------------------\n"
         invoice_text += f"MwSt.: {tax_amount:.2f} €\n"
@@ -211,35 +209,31 @@ class MainMenu:
     def ask_for_tip_amount(self):
         tip_options = [5, 10, 15]
 
-        # Create a custom dialog
         tip_dialog = simpledialog.Toplevel(self.root)
         tip_dialog.title("Trinkgeld")
 
-        # Add buttons for predefined tip percentages
         for tip_percentage in tip_options:
             button = ttk.Button(tip_dialog, text=f"{tip_percentage}%", command=lambda p=tip_percentage: self.set_tip_percentage(p))
             button.pack(pady=5)
 
-        # Wait for the user to make a choice
         tip_dialog.wait_window()
 
     def set_tip_percentage(self, tip_percentage):
-        self.tip_percentage = tip_percentage / 100  # Convert tip percentage to decimal
+        self.tip_percentage = tip_percentage / 100  
         self.update_invoice()
 
-    def calculate_total_price(self, tax_rate=0.19):  # tax_rate defaults to 19% if not provided
+    def calculate_total_price(self, tax_rate=0.19):  
         total = 0
         for dish_id, quantity in self.cart.items():
-            # Convert dish_id to an integer
             dish_id_int = int(dish_id[1:])
             if dish_id_int in self.menu.index:
                 price = float(self.menu.loc[dish_id_int, "Preis"].split(" ")[0].replace(",", "."))
                 total += price * quantity
 
         tax = total * tax_rate
-        tip = total * self.tip_percentage  # Calculate tip based on the total price before tax
+        tip = total * self.tip_percentage  
         total += tax
-        total_with_tip = total + (total * self.tip_percentage)  # Calculate total with tip as a percentage
+        total_with_tip = total + (total * self.tip_percentage)  
         return total_with_tip
 
     def create_payment_ui(self):
@@ -250,23 +244,18 @@ class MainMenu:
         self.pay_button.grid(row=0, column=0, pady=5)
 
     def process_payment(self):
-        # Ask if the customer wants to give a tip
         tip_response = tk.messagebox.askyesno("Trinkgeld", "Möchten Sie Trinkgeld geben?")
 
         if tip_response:
-            # If yes, ask for the tip amount
             self.ask_for_tip_amount()
         else:
             tip_amount = 0
 
-        # Calculate the total price including tip
         total_price = self.calculate_total_price()
 
-        # Display the payment window
         payment_window = tk.Toplevel(self.root)
         payment_window.title("Zahlung")
 
-        # Ask for payment method
         payment_label = tk.Label(payment_window, text="Wählen Sie eine Zahlungsmethode:")
         payment_label.grid(row=0, column=0, padx=10, pady=10)
 
