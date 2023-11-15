@@ -6,8 +6,9 @@ Dies ist ein einfaches Bestell- und Zahlungssystem für ein fiktives Restaurant 
 
 -   [Funktionalitäten](#funktionalitäten)
 -   [Voraussetzungen](#voraussetzungen)
--   [Verwendung](#verwendung)
 -   [Ausführen](#Ausführen)
+-   [Verwendung](#verwendung)
+-   [Mitwirkende](#mitwirkende)
 -   [Lizenz](#lizenz)
 
 ## Funktionalitäten
