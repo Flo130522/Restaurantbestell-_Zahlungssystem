@@ -32,5 +32,9 @@ Zum Starten des Programmes die Datei "welcome_window.py" ausführen
 -   Schließe die Bestellung ab und wähle eine Zahlungsmethode aus.
 -   Bestätige die Zahlung, um den Bestellstatus anzuzeigen.
 
+## Mitwirkende
+-   [Thorsten Schmidt](https://github.com/tschmidt66)
+-   [Georg Radic](https://github.com/datageorg) 
+
 ## Lizenz
 Dieses Projekt ist unter der MIT-Lizenz lizenziert - weitere Details findest du in der Datei LICENSE.
